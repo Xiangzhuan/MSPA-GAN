@@ -1,3 +1,4 @@
+#%%
 import os
 import random
 import shutil
@@ -218,3 +219,4 @@ if __name__ == '__main__':
     shutil.copyfile('config.yml', os.path.join(config.out_dir, 'config.yml'))
 
     train(config)
+

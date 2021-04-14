@@ -7,7 +7,6 @@ import os
 
 from torch.utils import data
 
-
 class TrainDataset(data.Dataset):
 
     def __init__(self, config):
@@ -38,7 +37,7 @@ class TrainDataset(data.Dataset):
             self.imlist[index])), 1).astype(np.float32)
         shadow_mask = cv2.imread(os.path.join(self.config.datasets_dir, 'shadow_mask', str(
             self.imlist[index])), 1).astype(np.float32)
-
+        np.expand_dims()
         M = np.clip((t-x).sum(axis=2), 0, 1).astype(np.float32)
         x = x / 255
         t = t / 255
