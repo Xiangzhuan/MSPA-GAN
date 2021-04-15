@@ -1,3 +1,4 @@
+# %%
 import glob
 import cv2
 import random
@@ -6,6 +7,7 @@ import pickle
 import os
 
 from torch.utils import data
+
 
 class TrainDataset(data.Dataset):
 
@@ -37,13 +39,15 @@ class TrainDataset(data.Dataset):
             self.imlist[index])), 1).astype(np.float32)
         shadow_mask = cv2.imread(os.path.join(self.config.datasets_dir, 'shadow_mask', str(
             self.imlist[index])), 1).astype(np.float32)
-        np.expand_dims()
-        M = np.clip((t-x).sum(axis=2), 0, 1).astype(np.float32)
+
+        shadow_maskM = shadow_maskM[0]
+        shadow_maskM = np.clip(shadow_maskM, 0.01, 1).astype(np.float32)
+        M = shadow_maskM  # np.clip((t-x).sum(axis=2), 0, 1).astype(np.float32)
         x = x / 255
         t = t / 255
         x = x.transpose(2, 0, 1)
         t = t.transpose(2, 0, 1)
-        shadow_mask = shadow_mask.transpose(2,0,1)
+        shadow_mask = shadow_mask.transpose(2, 0, 1)
         return x, t, M, shadow_mask
 
     def __len__(self):
@@ -51,7 +55,7 @@ class TrainDataset(data.Dataset):
 
 
 class TestDataset(data.Dataset):
-    def __init__(self, test_dir,txtdir, in_ch, out_ch):
+    def __init__(self, test_dir, txtdir, in_ch, out_ch):
         super().__init__()
         self.test_dir = test_dir
         self.in_ch = in_ch
@@ -60,7 +64,7 @@ class TestDataset(data.Dataset):
 
     def __getitem__(self, index):
         filename = os.path.basename(self.test_files[index])
-      
+
         x = cv2.imread(os.path.join(
             self.test_dir, 'cloudy_image', filename), 1).astype(np.float32)
 

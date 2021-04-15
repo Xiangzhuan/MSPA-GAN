@@ -1,11 +1,21 @@
+#%%
 import torch
 from torch import nn
 import torch.nn.functional as F
 from collections import OrderedDict
-from models.models_utils import weights_init, print_network
+#from models.models_utils import weights_init, print_network
 # import common
 
 # Layer
+
+#init weights
+def weights_init(m):
+    classname = m.__class__.__name__
+    if classname.find('Conv') != -1:
+        m.weight.data.normal_(0.0, 0.02)
+    elif classname.find('BatchNorm2d') != -1 or classname.find('InstanceNorm2d') != -1:
+        m.weight.data.normal_(1.0, 0.02)
+        m.bias.data.fill_(0)
 
 
 def conv1x1(in_channels, out_channels, stride=1):
@@ -41,6 +51,8 @@ class Bottleneck(nn.Module):
 class irnn_layer(nn.Module):
     def __init__(self, in_channels):
         super(irnn_layer, self).__init__()
+        #left right up down sampling
+
         self.left_weight = nn.Conv2d(
             in_channels, in_channels, kernel_size=1, stride=1, groups=in_channels, padding=0)
         self.right_weight = nn.Conv2d(
@@ -51,8 +63,11 @@ class irnn_layer(nn.Module):
             in_channels, in_channels, kernel_size=1, stride=1, groups=in_channels, padding=0)
 
     def forward(self, x):
-        _, _, H, W = x.shape
-        top_left = x.clone()
+        #get height and width of a feature map
+        #print("the shape or irnn input is",x.shape)
+        #the shape or irnn input is torch.Size([1, 32, 512, 512])
+        _, _, H, W = x.shape #h ,w =512,512
+        top_left = x.clone() 
         top_right = x.clone()
         top_up = x.clone()
         top_down = x.clone()
@@ -64,6 +79,7 @@ class irnn_layer(nn.Module):
             x)[:, :, :H-1, :]+x[:, :, 1:, :], inplace=False)
         top_down[:, :, :-1, :] = F.relu(self.down_weight(x)
                                         [:, :, 1:, :]+x[:, :, :H-1, :], inplace=False)
+        #print((top_up, top_right, top_down, top_left))                     
         return (top_up, top_right, top_down, top_left)
 
 
@@ -154,20 +170,23 @@ class SPANet(nn.Module):
             nn.ReLU(True)
         )
         self.SAM1 = SAM(32, 32, 1)
+        self.SAM2 = SAM(32,32,1)
+        self.SAM3 = SAM(32,32,1)
+        self.SAM4 = SAM(32,32,1)
         self.res_block1 = Bottleneck(32, 32)
-        #self.res_block2 = Bottleneck(32, 32)
+        self.res_block2 = Bottleneck(32, 32)
         self.res_block3 = Bottleneck(32, 32)
         self.res_block4 = Bottleneck(32, 32)
-        #self.res_block5 = Bottleneck(32, 32)
+        self.res_block5 = Bottleneck(32, 32)
         self.res_block6 = Bottleneck(32, 32)
         self.res_block7 = Bottleneck(32, 32)
-        #self.res_block8 = Bottleneck(32, 32)
+        self.res_block8 = Bottleneck(32, 32)
         self.res_block9 = Bottleneck(32, 32)
         self.res_block10 = Bottleneck(32, 32)
-        #self.res_block11 = Bottleneck(32, 32)
+        self.res_block11 = Bottleneck(32, 32)
         self.res_block12 = Bottleneck(32, 32)
         self.res_block13 = Bottleneck(32, 32)
-        #self.res_block14 = Bottleneck(32, 32)
+        self.res_block14 = Bottleneck(32, 32)
         self.res_block15 = Bottleneck(32, 32)
         self.res_block16 = Bottleneck(32, 32)
         self.res_block17 = Bottleneck(32, 32)
@@ -179,28 +198,28 @@ class SPANet(nn.Module):
 
         out = self.conv_in(x)
         out = F.relu(self.res_block1(out) + out)
-        #out = F.relu(self.res_block2(out) + out)
+        out = F.relu(self.res_block2(out) + out)
         out = F.relu(self.res_block3(out) + out)
         res_out = out
 
         Attention1 = self.SAM1(out)
         out = F.relu(self.res_block4(out) * Attention1 + out)
-        #out = F.relu(self.res_block5(out) * Attention1 + out)
+        out = F.relu(self.res_block5(out) * Attention1 + out)
         out = F.relu(self.res_block6(out) * Attention1 + out)
 
-        Attention2 = self.SAM1(out)
+        Attention2 = self.SAM2(out)
         out = F.relu(self.res_block7(out) * Attention2 + out)
-        #out = F.relu(self.res_block8(out) * Attention2 + out)
+        out = F.relu(self.res_block8(out) * Attention2 + out)
         out = F.relu(self.res_block9(out) * Attention2 + out)
 
-        Attention3 = self.SAM1(out)
+        Attention3 = self.SAM3(out)
         out = F.relu(self.res_block10(out) * Attention3 + out)
-        #out = F.relu(self.res_block11(out) * Attention3 + out)
+        out = F.relu(self.res_block11(out) * Attention3 + out)
         out = F.relu(self.res_block12(out) * Attention3 + out)
 
-        Attention4 = self.SAM1(out)
-        #out = F.relu(self.res_block13(out) * Attention4 + out)
-        #out = F.relu(self.res_block14(out) * Attention4 + out)
+        Attention4 = self.SAM4(out)
+        out = F.relu(self.res_block13(out) * Attention4 + out)
+        out = F.relu(self.res_block14(out) * Attention4 + out)
         out = F.relu(self.res_block15(out) * Attention4 + out)
 
         out = F.relu(self.res_block16(out) + res_out)
