@@ -1,32 +1,30 @@
-
-# folder path of dataset, which includes 2 subfolders: cloudy_image/ and ground_truth/
-datasets_dir: D:\pythonRepos\SpA-GAN_for_cloud_removal-master\data\RICE_DATASET\RICE2
+datasets_dir: ./data/RICE_DATASET/RICE1/
 train_list: train_list.txt
 test_list: test_list.txt
 out_dir: results
 
-cuda: True
-gpu_ids: [0]
+cuda: False
+gpu_ids: 
 
-train_size: 0.80
-validation_size: 0.20 # 验证集大小是占训练集的半分比
+train_size: 0.8
+validation_size: 0.2 # 验证集大小是占训练集的半分比
 batchsize: 1
 validation_batchsize: 1
 epoch: 200
-n_data: 100
+n_data: 433
 width: 512
 height: 512
-threads: 0
+threads: 4
 
 lr: 0.0004
 beta1: 0.5
-lamb: 150
+lamb: 100
 minimax: 1
 
-gen_init: D:\pythonRepos\SPA-GAN_loss_modified\results\000068\models\gen_model_epoch_35.pth
-dis_init: D:\pythonRepos\SPA-GAN_loss_modified\results\000068\models\dis_model_epoch_35.pth
+gen_init: 
+dis_init: 
 in_ch: 3
 out_ch: 3
 
-manualSeed: 2
-snapshot_interval: 5
+manualSeed: 0
+snapshot_interval: 200

@@ -1,4 +1,4 @@
-#%%
+# %%
 import os
 import random
 import shutil
@@ -26,7 +26,7 @@ from visualize import Visualizer
 def train(config):
     gpu_manage(config)
 
-    vis = Visualizer(env='SPA-GAN')
+    #vis = Visualizer(env='SPA-GAN')
 
     ### DATASET LOAD ###
     print('===> Loading datasets')
@@ -79,7 +79,6 @@ def train(config):
     criterionL1 = nn.L1Loss()
     criterionMSE = nn.MSELoss()
     criterionSoftplus = nn.Softplus()
-    
 
     if config.cuda:
         gen = gen.cuda()
@@ -109,7 +108,7 @@ def train(config):
             # copy data to GPU
             real_a.data.resize_(real_a_cpu.size()).copy_(real_a_cpu)
             real_b.data.resize_(real_b_cpu.size()).copy_(real_b_cpu)
-            M.data.resize_(M_cpu.size()).copy_(M_cpu)
+            M.resize_(M_cpu.size()).copy_(M_cpu)
             shadow_mask.resize_(
                 shadow_mask_cpu.size()).copy_(shadow_mask_cpu)
 
@@ -157,8 +156,10 @@ def train(config):
 
             # Second, G(A) = B
             # L1 loss was modifid to carl_error
-            #print(real_b.shape,shadow_mask.shape,fake_b.shape)
-            loss_g_l1 = utils.carl_error(real_b, shadow_mask, fake_b) * config.lamb
+            # print(real_b.shape,shadow_mask.shape,fake_b.shape)
+            loss_g_l1 = utils.carl_error(
+                real_b, shadow_mask, fake_b) * config.lamb
+            #print(att[:, 0, :, :].shape, M.shape)
             loss_g_att = criterionMSE(att[:, 0, :, :], M)
             loss_g = loss_g_gan + loss_g_l1 + loss_g_att
 
@@ -171,14 +172,14 @@ def train(config):
                 print("===> Epoch[{}]({}/{}): loss_d_fake: {:.4f} loss_d_real: {:.4f} loss_g_gan: {:.4f} loss_g_l1: {:.4f} loss_g_att: {:.4f}".format(
                     epoch, iteration, len(training_data_loader), loss_d_fake.item(), loss_d_real.item(), loss_g_gan.item(), loss_g_l1.item(), loss_g_att.item()))
                 # 可视化工作
-                vis.plot('loss_d_fake', loss_d_fake.item())
+                """vis.plot('loss_d_fake', loss_d_fake.item())
                 vis.plot('loss_d_real', loss_d_real.item())
                 vis.plot('loss_g_gan', loss_g_gan.item())
                 vis.plot('loss_g_l1', loss_g_l1.item())
                 vis.plot('loss_g_att', loss_g_att.item())
                 vis.img('fake_b', torch.squeeze(fake_b.clamp(min=0, max=1)))
                 vis.img('real_a', torch.squeeze(real_a.clamp(min=0, max=1)))
-                vis.img('real_b', torch.squeeze(real_b.clamp(min=0, max=1)))
+                vis.img('real_b', torch.squeeze(real_b.clamp(min=0, max=1)))"""
 
                 log = {}
                 log['epoch'] = epoch
@@ -219,4 +220,3 @@ if __name__ == '__main__':
     shutil.copyfile('config.yml', os.path.join(config.out_dir, 'config.yml'))
 
     train(config)
-

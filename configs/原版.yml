@@ -1,6 +1,4 @@
-
-# folder path of dataset, which includes 2 subfolders: cloud/ and ground_truth/
-datasets_dir: ../data/RICE_DATASET/RICE1/
+datasets_dir: ./data/RICE_DATASET/RICE1/
 train_list: train_list.txt
 test_list: test_list.txt
 out_dir: results
@@ -29,4 +27,4 @@ in_ch: 3
 out_ch: 3
 
 manualSeed: 0
-snapshot_interval: 50
+snapshot_interval: 200
