@@ -1,4 +1,3 @@
-#%%
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -31,25 +30,10 @@ def conv3x3(in_channels, out_channels, stride = 1):
     return nn.Conv2d(in_channels,out_channels,kernel_size = 3,
         stride =stride, padding=1,bias=False)
 
-class AttentionNet(nn.Module):
-    def __init__(self,in_channels=1,out_channels=1):
-        super(AttentionNet,self).__init__()
-        net = OrderedDict()
-        #input size 1,1,512,512
-        net['conv1']=nn.Conv2d(in_channels=in_channels,out_channels=out_channels,kernel_size=1,bias=False)
-        net['relu1']=nn.ReLU(True)
-        net['conv2']=nn.Conv2d(out_channels,out_channels,kernel_size=1,bias=False)
-        net['relu2']=nn.ReLU(True)
-        net['conv3']=nn.Conv2d(out_channels,out_channels,kernel_size=1,bias=False)
-        net['sigmoid']=nn.Sigmoid()
-        self.net=nn.Sequential(net)
-    def forward(self,x):
-        return self.net(x)
 class Bottleneck(nn.Module):
     def __init__(self,in_channels,out_channels,):
         super(Bottleneck,self).__init__()
         m  = OrderedDict()
-        # 
         m['conv1'] = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
         m['relu1'] = nn.ReLU(True)
         m['conv2'] = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=2, bias=False,dilation=2)
@@ -182,7 +166,6 @@ class SPANet(nn.Module):
         self.conv_out = nn.Sequential(
             conv3x3(32,3)
         )
-        self.attention_net=AttentionNet(1,1)
     def forward(self, x):
 
         out = self.conv_in(x)
@@ -206,7 +189,6 @@ class SPANet(nn.Module):
         out = F.relu(self.res_block12(out) * Attention3 + out)
         
         Attention4 = self.SAM1(out) 
-        # Attention4 Dimentions = 1,1,512,512
         out = F.relu(self.res_block13(out) * Attention4 + out)
         out = F.relu(self.res_block14(out) * Attention4 + out)
         out = F.relu(self.res_block15(out) * Attention4 + out)
@@ -215,10 +197,7 @@ class SPANet(nn.Module):
         out = F.relu(self.res_block17(out) + out)
        
         out = self.conv_out(out)
-        #########Handle Attention4 #############
-        # add modules to handle attention4     #
-        ########################################
-        Attention4=self.attention_net(Attention4)
+
         return Attention4 , out
 
 class Generator(nn.Module):
@@ -235,4 +214,3 @@ class Generator(nn.Module):
             return nn.parallel.data_parallel(self.gen, x, self.gpu_ids)
         else:
             return self.gen(x)
-# %%
